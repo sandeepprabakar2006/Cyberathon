@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Adaptive Data Protection Engine</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="logo">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span>Adaptive Data Protection Engine</span>
+    </div>
+    <div class="nav-tabs">
+      <a class="nav-tab active" onclick="showPage('dashboard')">Dashboard</a>
+      <a class="nav-tab" onclick="showPage('requests')">File Requests</a>
+      <a class="nav-tab" onclick="showPage('analysis')">Security Analysis</a>
+      <a class="nav-tab" onclick="showPage('logs')">Logs</a>
+      <a class="nav-tab" onclick="showPage('settings')">Settings</a>
+    </div>
+  </div>
+  <div class="topnav-right">
+    <div class="notif-btn"><i class="fa-regular fa-bell"></i><span class="badge">3</span></div>
+    <div class="user-profile">
+      <div class="avatar">MA</div>
+      <div class="user-info">
+        <span class="user-name">Manager Admin</span>
+        <span class="user-role">Administrator</span>
+      </div>
+      <i class="fa-solid fa-chevron-down"></i>
+    </div>
+  </div>
+</nav>
+
+<div class="app-body">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <p class="sidebar-label">MAIN MENU</p>
+    <a class="sidebar-item active" onclick="showPage('dashboard')">
+      <i class="fa-solid fa-gauge-high"></i><span>Overview</span>
+    </a>
+    <a class="sidebar-item" onclick="showPage('requests')">
+      <i class="fa-solid fa-folder-open"></i><span>File Access Requests</span>
+    </a>
+    <a class="sidebar-item" onclick="showPage('analysis')">
+      <i class="fa-solid fa-brain"></i><span>Data Sensitivity Analysis</span>
+    </a>
+    <a class="sidebar-item" onclick="showPage('actions')">
+      <i class="fa-solid fa-shield-halved"></i><span>Security Actions</span>
+    </a>
+    <a class="sidebar-item" onclick="showPage('logs')">
+      <i class="fa-solid fa-list-ul"></i><span>Access Logs</span>
+    </a>
+    <a class="sidebar-item" onclick="showPage('status')">
+      <i class="fa-solid fa-server"></i><span>System Status</span>
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="sidebar-item" onclick="showPage('settings')">
+      <i class="fa-solid fa-gear"></i><span>Settings</span>
+    </a>
+    <div class="engine-status-badge">
+      <span class="dot green"></span> Engine Active
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- DASHBOARD PAGE -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Security Overview</h1>
+        <p class="page-sub">Real-time monitoring · Updated just now</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-outline"><i class="fa-solid fa-download"></i> Export</button>
+        <button class="btn-primary"><i class="fa-solid fa-rotate"></i> Refresh</button>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon"><i class="fa-solid fa-folder-closed"></i></div>
+        <div class="stat-body">
+          <p class="stat-label">Total Requests</p>
+          <h2 class="stat-value">1,284</h2>
+          <p class="stat-delta positive"><i class="fa-solid fa-arrow-trend-up"></i> +12% this week</p>
+        </div>
+        <div class="stat-bg"></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-body">
+          <p class="stat-label">Sensitive Files Detected</p>
+          <h2 class="stat-value">347</h2>
+          <p class="stat-delta negative"><i class="fa-solid fa-arrow-trend-up"></i> +5% this week</p>
+        </div>
+        <div class="stat-bg"></div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon"><i class="fa-solid fa-globe"></i></div>
+        <div class="stat-body">
+          <p class="stat-label">External Access Attempts</p>
+          <h2 class="stat-value">89</h2>
+          <p class="stat-delta negative"><i class="fa-solid fa-arrow-trend-up"></i> +3% this week</p>
+        </div>
+        <div class="stat-bg"></div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon"><i class="fa-solid fa-lock"></i></div>
+        <div class="stat-body">
+          <p class="stat-label">Encrypted Responses</p>
+          <h2 class="stat-value">612</h2>
+          <p class="stat-delta positive"><i class="fa-solid fa-arrow-trend-up"></i> +18% this week</p>
+        </div>
+        <div class="stat-bg"></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-row">
+      <div class="chart-card wide">
+        <div class="card-header">
+          <h3>Request Activity (7 days)</h3>
+          <div class="legend-row">
+            <span class="legend-dot blue"></span><span>Internal</span>
+            <span class="legend-dot orange"></span><span>External</span>
+          </div>
+        </div>
+        <div class="bar-chart">
+          <div class="bar-group"><div class="bar b-int" style="height:60%"></div><div class="bar b-ext" style="height:20%"></div><span>Mon</span></div>
+          <div class="bar-group"><div class="bar b-int" style="height:75%"></div><div class="bar b-ext" style="height:30%"></div><span>Tue</span></div>
+          <div class="bar-group"><div class="bar b-int" style="height:55%"></div><div class="bar b-ext" style="height:15%"></div><span>Wed</span></div>
+          <div class="bar-group"><div class="bar b-int" style="height:90%"></div><div class="bar b-ext" style="height:40%"></div><span>Thu</span></div>
+          <div class="bar-group"><div class="bar b-int" style="height:68%"></div><div class="bar b-ext" style="height:25%"></div><span>Fri</span></div>
+          <div class="bar-group"><div class="bar b-int" style="height:45%"></div><div class="bar b-ext" style="height:10%"></div><span>Sat</span></div>
+          <div class="bar-group"><div class="bar b-int" style="height:80%"></div><div class="bar b-ext" style="height:35%"></div><span>Sun</span></div>
+        </div>
+      </div>
+      <div class="chart-card narrow">
+        <div class="card-header"><h3>Security Actions</h3></div>
+        <div class="donut-wrap">
+          <svg viewBox="0 0 120 120" class="donut-svg">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#e8f0fe" stroke-width="18"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#3b82f6" stroke-width="18" stroke-dasharray="120 194" stroke-dashoffset="25" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#f59e0b" stroke-width="18" stroke-dasharray="70 244" stroke-dashoffset="-95" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#10b981" stroke-width="18" stroke-dasharray="50 264" stroke-dashoffset="-165" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#8b5cf6" stroke-width="18" stroke-dasharray="74 240" stroke-dashoffset="-215" stroke-linecap="round"/>
+          </svg>
+          <div class="donut-center"><span class="donut-num">1,284</span><span class="donut-lbl">Total</span></div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><span class="legend-dot blue"></span><span>Encrypted</span><b>612</b></div>
+          <div class="dl-row"><span class="legend-dot orange"></span><span>Masked</span><b>347</b></div>
+          <div class="dl-row"><span class="legend-dot green"></span><span>Tokenized</span><b>236</b></div>
+          <div class="dl-row"><span class="legend-dot purple"></span><span>Plain</span><b>89</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILE REQUESTS PAGE -->
+  <div id="page-requests" class="page">
+    <div class="page-header">
+      <div><h1 class="page-title">File Access Requests</h1><p class="page-sub">Submit and evaluate file requests</p></div>
+    </div>
+    <div class="two-col">
+      <div class="card form-card">
+        <h3 class="card-title"><i class="fa-solid fa-file-circle-plus"></i> New File Request</h3>
+        <div class="form-group">
+          <label>File Name</label>
+          <input type="text" id="fileName" class="form-input" placeholder="e.g. payroll_2024_q4.csv" />
+        </div>
+        <div class="form-group">
+          <label>Request Source</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="source" value="internal" checked/><span>Internal User</span></label>
+            <label class="radio-opt"><input type="radio" name="source" value="external"/><span>External User</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>IAM Role</label>
+          <select class="form-input">
+            <option>Data Analyst</option><option>Finance Manager</option><option>IT Administrator</option><option>External Auditor</option>
+          </select>
+        </div>
+        <button class="btn-primary full-w" onclick="analyzeRequest()"><i class="fa-solid fa-magnifying-glass"></i> Analyze Request</button>
+      </div>
+
+      <div class="card result-card" id="analysisResult">
+        <h3 class="card-title"><i class="fa-solid fa-shield-halved"></i> Analysis Result</h3>
+        <div class="sensitivity-display" id="sensitivityDisplay">
+          <div class="sens-icon" id="sensIcon"><i class="fa-solid fa-circle-question"></i></div>
+          <div>
+            <p class="sens-label" id="sensLabel">Awaiting Analysis</p>
+            <p class="sens-desc" id="sensDesc">Submit a file request to see the sensitivity classification and recommended action.</p>
+          </div>
+        </div>
+        <div class="action-badges" id="actionBadges"></div>
+        <div class="flow-mini" id="flowMini"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY ANALYSIS PAGE -->
+  <div id="page-analysis" class="page">
+    <div class="page-header">
+      <div><h1 class="page-title">Security Decision Flow</h1><p class="page-sub">Engine logic visualization</p></div>
+    </div>
+    <div class="card flow-card">
+      <h3 class="card-title"><i class="fa-solid fa-diagram-project"></i> Request Processing Pipeline</h3>
+      <div class="flow-pipeline">
+        <div class="flow-node start">
+          <div class="fn-icon"><i class="fa-solid fa-user"></i></div>
+          <p>User Request</p>
+        </div>
+        <div class="flow-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        <div class="flow-node">
+          <div class="fn-icon nlp"><i class="fa-solid fa-brain"></i></div>
+          <p>NLP Sensitivity Detection</p>
+        </div>
+        <div class="flow-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        <div class="flow-node">
+          <div class="fn-icon ip"><i class="fa-solid fa-network-wired"></i></div>
+          <p>IP Verification</p>
+        </div>
+        <div class="flow-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        <div class="flow-node">
+          <div class="fn-icon iam"><i class="fa-solid fa-id-badge"></i></div>
+          <p>IAM Role Classification</p>
+        </div>
+        <div class="flow-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        <div class="flow-node end">
+          <div class="fn-icon action"><i class="fa-solid fa-shield-halved"></i></div>
+          <p>Security Action</p>
+        </div>
+      </div>
+      <div class="result-badges">
+        <div class="rbadge enc"><i class="fa-solid fa-lock"></i> Encryption</div>
+        <div class="rbadge mask"><i class="fa-solid fa-eye-slash"></i> Masking</div>
+        <div class="rbadge tok"><i class="fa-solid fa-key"></i> Tokenization</div>
+        <div class="rbadge plain"><i class="fa-solid fa-file-circle-check"></i> Plain Access</div>
+      </div>
+    </div>
+    <div class="two-col mt20">
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-brain"></i> NLP Model Info</h3>
+        <div class="info-rows">
+          <div class="info-row"><span>Model Type</span><b>BERT-based Classifier</b></div>
+          <div class="info-row"><span>Accuracy</span><b>97.4%</b></div>
+          <div class="info-row"><span>Sensitivity Classes</span><b>Important / Medium / Normal</b></div>
+          <div class="info-row"><span>Last Trained</span><b>2026-03-01</b></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-scale-balanced"></i> Decision Matrix</h3>
+        <table class="mini-table">
+          <thead><tr><th>Sensitivity</th><th>Internal</th><th>External</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge-pill important">Important</span></td><td>Encrypt</td><td>Block</td></tr>
+            <tr><td><span class="badge-pill medium">Medium</span></td><td>Mask</td><td>Tokenize</td></tr>
+            <tr><td><span class="badge-pill normal">Normal</span></td><td>Plain</td><td>Plain</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGS PAGE -->
+  <div id="page-logs" class="page">
+    <div class="page-header">
+      <div><h1 class="page-title">Access Logs</h1><p class="page-sub">Full audit trail of all file requests</p></div>
+      <div class="header-actions">
+        <input class="search-input" type="text" placeholder="Search logs..." id="logSearch" oninput="filterLogs()"/>
+        <button class="btn-outline"><i class="fa-solid fa-download"></i> Export CSV</button>
+      </div>
+    </div>
+    <div class="card">
+      <table class="logs-table" id="logsTable">
+        <thead>
+          <tr>
+            <th>Timestamp</th><th>File Requested</th><th>Sensitivity</th><th>User Type</th><th>Security Action</th>
+          </tr>
+        </thead>
+        <tbody id="logsTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SYSTEM STATUS PAGE -->
+  <div id="page-status" class="page">
+    <div class="page-header">
+      <div><h1 class="page-title">System Status</h1><p class="page-sub">Live health monitoring of all engine components</p></div>
+    </div>
+    <div class="status-grid">
+      <div class="status-card active">
+        <div class="sc-icon"><i class="fa-solid fa-microchip"></i></div>
+        <div class="sc-body"><h3>Engine Status</h3><p>All systems operational</p><span class="sc-badge green">Active</span></div>
+        <div class="sc-uptime">Uptime: 99.98%</div>
+      </div>
+      <div class="status-card active">
+        <div class="sc-icon"><i class="fa-solid fa-brain"></i></div>
+        <div class="sc-body"><h3>NLP Model Status</h3><p>BERT classifier running</p><span class="sc-badge green">Online</span></div>
+        <div class="sc-uptime">Latency: 42ms</div>
+      </div>
+      <div class="status-card active">
+        <div class="sc-icon"><i class="fa-brands fa-aws"></i></div>
+        <div class="sc-body"><h3>S3 Connection</h3><p>us-east-1 bucket connected</p><span class="sc-badge green">Connected</span></div>
+        <div class="sc-uptime">Region: us-east-1</div>
+      </div>
+      <div class="status-card active">
+        <div class="sc-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="sc-body"><h3>Security Layer</h3><p>Encryption module active</p><span class="sc-badge green">Active</span></div>
+        <div class="sc-uptime">AES-256 enabled</div>
+      </div>
+      <div class="status-card warning">
+        <div class="sc-icon"><i class="fa-solid fa-bell"></i></div>
+        <div class="sc-body"><h3>Threat Monitor</h3><p>3 anomalies detected</p><span class="sc-badge yellow">Warning</span></div>
+        <div class="sc-uptime">Review required</div>
+      </div>
+      <div class="status-card active">
+        <div class="sc-icon"><i class="fa-solid fa-key"></i></div>
+        <div class="sc-body"><h3>IAM Integration</h3><p>AWS IAM roles synced</p><span class="sc-badge green">Synced</span></div>
+        <div class="sc-uptime">Last sync: 2m ago</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div id="page-settings" class="page">
+    <div class="page-header">
+      <div><h1 class="page-title">Settings</h1><p class="page-sub">Configure engine and security policies</p></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-sliders"></i> Engine Configuration</h3>
+        <div class="setting-row"><label>Default Encryption Algorithm</label><select class="form-input sm"><option>AES-256</option><option>RSA-2048</option></select></div>
+        <div class="setting-row"><label>Auto-block External High Risk</label><label class="toggle"><input type="checkbox" checked/><span class="slider"></span></label></div>
+        <div class="setting-row"><label>NLP Confidence Threshold</label><input type="range" min="50" max="99" value="85" class="range-input"/></div>
+        <div class="setting-row"><label>Log Retention (days)</label><input type="number" value="90" class="form-input sm"/></div>
+        <button class="btn-primary mt10">Save Configuration</button>
+      </div>
+      <div class="card">
+        <h3 class="card-title"><i class="fa-solid fa-user-shield"></i> Access Control</h3>
+        <div class="setting-row"><label>Require MFA for External Access</label><label class="toggle"><input type="checkbox" checked/><span class="slider"></span></label></div>
+        <div class="setting-row"><label>Session Timeout (minutes)</label><input type="number" value="30" class="form-input sm"/></div>
+        <div class="setting-row"><label>Max Login Attempts</label><input type="number" value="5" class="form-input sm"/></div>
+        <div class="setting-row"><label>Alert on Sensitive Access</label><label class="toggle"><input type="checkbox" checked/><span class="slider"></span></label></div>
+        <button class="btn-primary mt10">Update Policy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY ACTIONS PAGE -->
+  <div id="page-actions" class="page">
+    <div class="page-header">
+      <div><h1 class="page-title">Security Actions</h1><p class="page-sub">Protection measures applied by the engine</p></div>
+    </div>
+    <div class="actions-grid">
+      <div class="action-card enc-card">
+        <div class="ac-icon"><i class="fa-solid fa-lock"></i></div>
+        <h3>Encryption</h3>
+        <p>Applied to high-sensitivity files. Uses AES-256 to fully encrypt file content before delivery.</p>
+        <div class="ac-stat"><b>612</b> applied today</div>
+      </div>
+      <div class="action-card mask-card">
+        <div class="ac-icon"><i class="fa-solid fa-eye-slash"></i></div>
+        <h3>Masking</h3>
+        <p>Partially hides sensitive fields (e.g. SSN, account numbers) while preserving data structure.</p>
+        <div class="ac-stat"><b>347</b> applied today</div>
+      </div>
+      <div class="action-card tok-card">
+        <div class="ac-icon"><i class="fa-solid fa-key"></i></div>
+        <h3>Tokenization</h3>
+        <p>Replaces sensitive data with tokens that map back securely within a protected vault.</p>
+        <div class="ac-stat"><b>236</b> applied today</div>
+      </div>
+      <div class="action-card plain-card">
+        <div class="ac-icon"><i class="fa-solid fa-file-circle-check"></i></div>
+        <h3>Plain Access</h3>
+        <p>Granted to low-risk requests from verified internal users with appropriate IAM roles.</p>
+        <div class="ac-stat"><b>89</b> applied today</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
