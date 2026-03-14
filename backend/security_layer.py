@@ -220,20 +220,30 @@ _MASK_PATTERNS: list[tuple[re.Pattern, Any]] = [
     (re.compile(r"\b5[1-5]\d{14}\b"),            lambda m: "**** **** **** ****"),
     # Generic 16-digit card
     (re.compile(r"\b\d{16}\b"),                  lambda m: "**** **** **** ****"),
-    # salary/payroll followed by number: "salary: 95000" → "salary: ****"
-    (re.compile(r"(salary\s*[:\s])\s*[\d,\.]+",   re.IGNORECASE),
-     lambda m: m.group(1) + "****"),
-    (re.compile(r"(payroll\s*[:\s])\s*[\d,\.]+",  re.IGNORECASE),
-     lambda m: m.group(1) + "****"),
-    # password = secret → password = ********
-    (re.compile(r"(password\s*[=:\s])\s*\S+",     re.IGNORECASE),
-     lambda m: m.group(1) + "********"),
-    # api_key = abc123 → api_key = ********
+    # salary/payroll followed by number: "salary: 95000" or "| 85,000 |"
+    (re.compile(r"((?:salary|payroll|balance|amount|INR|USD)\s*[:\-\s\|]*)\s*([\d,\.]+)", re.IGNORECASE),
+     lambda m: m.group(1) + " [REDACTED]"),
+    
+    # Stand-alone high-value currency/numbers (likely salaries/fees)
+    (re.compile(r"\b\d{2,3}[,]\d{3}\b"), 
+     lambda m: "[FIN_DATA]"),
+    
+    # Generic Names (Two TitleCase words): "Manoj Kumar"
+    (re.compile(r"([A-Z][a-z]+)\s+([A-Z][a-z]+)"),
+     lambda m: m.group(1)[0] + "**** " + m.group(2)[0] + "****"),
+
+    # api_key = abc123 -> api_key = ********
     (re.compile(r"(api.?key\s*[=:\s])\s*\S+",     re.IGNORECASE),
      lambda m: m.group(1) + "********"),
-    # Email: john@example.com → jo****@example.com
+    # Email: john@example.com
     (re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"),
      lambda m: m.group()[:2] + "****@" + m.group().split("@")[-1]),
+    # Phone Numbers
+    (re.compile(r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"),
+     lambda m: "XXX-XXX-XXXX"),
+    # Canteen Menu Items (Demo for Organizational Protocol)
+    (re.compile(r"((?:Monday|Tuesday|Wednesday|Thursday|Friday)\s*[:])\s*(.*)", re.IGNORECASE),
+     lambda m: m.group(1) + " [REDACTED MENU ITEM]"),
 ]
 
 
@@ -290,14 +300,29 @@ def tokenize_data(content: str) -> tuple[str, dict[str, str]]:
 
     result = content
 
-    # Tokenise SSN, card numbers, emails
+    # Comprehensive Tokenization patterns: catching everything we mask but with Tokens
+    # 1. Labels with Values (Salary: 1000 -> Salary: TKN-ABCD)
+    label_val_pattern = re.compile(r"((?:salary|payroll|balance|amount)\s*[:\-\s\|])\s*([\d,\.]+)", re.IGNORECASE)
+    result = label_val_pattern.sub(lambda m: m.group(1) + " " + make_token(m.group(2)), result)
+
+    # 2. Stand-alone financial/ID data
     tokenise_patterns = [
-        re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
-        re.compile(r"\b\d{16}\b"),
-        re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"),
+        re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),               # SSN
+        re.compile(r"\b\d{16}\b"),                           # Cards
+        re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"), # Email
+        re.compile(r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"), # Phone
+        re.compile(r"\b[A-Z]{2,3}\s*\d{2,3}[,\.]\d{3}\b"), # Generic Fin Data
     ]
     for pattern in tokenise_patterns:
         result = pattern.sub(lambda m: make_token(m.group()), result)
+
+    # 3. Names (Title Case pairs)
+    name_pattern = re.compile(r"\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b")
+    result = name_pattern.sub(lambda m: make_token(m.group()), result)
+
+    # 4. Weekly Canteen Menu Tokenizer
+    menu_pattern = re.compile(r"((?:Monday|Tuesday|Wednesday|Thursday|Friday)\s*[:])\s*(.*)", re.IGNORECASE)
+    result = menu_pattern.sub(lambda m: m.group(1) + " " + make_token(m.group(2)), result)
 
     logger.info("Tokenization applied — %d tokens generated.", len(vault))
     return result, vault

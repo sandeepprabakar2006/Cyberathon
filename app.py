@@ -55,7 +55,7 @@ section[data-testid="stSidebar"] * { color: #cbd5e1 !important; }
 /* Sidebar section label */
 .sidebar-section-label {
     font-size: 10px; font-weight: 700; letter-spacing: .12em;
-    color: #475569 !important; text-transform: uppercase;
+    color: #94a3b8 !important; text-transform: uppercase;
     padding: 0 4px 8px; margin-top: 4px;
 }
 
@@ -115,6 +115,7 @@ section[data-testid="stSidebar"][aria-expanded="false"] { display: flex !importa
 
 /* ── MAIN AREA ───────────────────────────────────────────────── */
 .stApp { background: #fdf5e6; } /* Sandal/Cream Background */
+.stApp h1, .stApp h2, .stApp h3, .stApp h4 { color: #0f172a !important; }
 
 /* Page header bar */
 .page-header-bar {
@@ -346,7 +347,7 @@ with st.sidebar:
       <div class="pulse-dot"></div>
       <div>
         <div style="font-size:12px;color:#34d399!important;font-weight:700">Engine Active</div>
-        <div style="font-size:10.5px;color:#64748b!important;margin-top:1px">VPC Private Subnet</div>
+        <div style="font-size:10.5px;color:#94a3b8!important;margin-top:1px">VPC Private Subnet</div>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -355,7 +356,7 @@ with st.sidebar:
         border:1px solid rgba(99,102,241,0.2);border-radius:10px">
       <div style="font-size:10px;color:#818cf8!important;font-weight:700;letter-spacing:.08em">SESSION REQUESTS</div>
       <div style="font-size:26px;font-weight:800;color:#e2e8f0!important;margin:4px 0 2px">{total_reqs}</div>
-      <div style="font-size:10.5px;color:#64748b!important">requests analysed</div>
+      <div style="font-size:10.5px;color:#94a3b8!important">requests analysed</div>
     </div>""", unsafe_allow_html=True)
 
 page = st.session_state.page
@@ -663,12 +664,36 @@ elif page == "requests":
             st.markdown("---")
             st.markdown("### 📊 Security Analysis Result")
 
-            # KPI row
+            # KPI row replaced with high-contrast HTML cards
             k1, k2, k3, k4 = st.columns(4)
-            k1.metric("🎯 Sensitivity", sens)
-            k2.metric("🌐 User Type", data["user_type"].upper())
-            k3.metric("📊 Risk Score", f"{rs}/100")
-            k4.metric("🧠 NLP + IP", f"{data['nlp_score']} + {data['ip_score']}")
+            with k1: 
+                st.markdown(f"""<div class="kpi-card" style="border-left:4px solid #3b82f6; padding:15px">
+                    <div class="kpi-info">
+                        <div class="kpi-label">🎯 Sensitivity</div>
+                        <div class="kpi-value" style="font-size:24px; color:#1e293b">{sens}</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+            with k2:
+                st.markdown(f"""<div class="kpi-card" style="border-left:4px solid #10b981; padding:15px">
+                    <div class="kpi-info">
+                        <div class="kpi-label">🌐 User Type</div>
+                        <div class="kpi-value" style="font-size:24px; color:#1e293b">{data["user_type"].upper()}</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+            with k3:
+                st.markdown(f"""<div class="kpi-card" style="border-left:4px solid {rs_color}; padding:15px">
+                    <div class="kpi-info">
+                        <div class="kpi-label">📊 Risk Score</div>
+                        <div class="kpi-value" style="font-size:24px; color:#1e293b">{rs}/100</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+            with k4:
+                st.markdown(f"""<div class="kpi-card" style="border-left:4px solid #8b5cf6; padding:15px">
+                    <div class="kpi-info">
+                        <div class="kpi-label">🧠 NLP + IP</div>
+                        <div class="kpi-value" style="font-size:24px; color:#1e293b">{data['nlp_score']} + {data['ip_score']}</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
 
             # Ops applied banner
             st.markdown(f"""
@@ -723,9 +748,29 @@ elif page == "requests":
               </div>
             </div>""", unsafe_allow_html=True)
 
-            # Processed data preview
-            with st.expander("🔍 View Processed Data (what gets returned)", expanded=False):
-                st.code(data["processed_data"][:1200], language="json" if "{" in data["processed_data"] else "text")
+            # ── Prominent Output Section
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="netdictator-card"><h4>🔍 Final Processed Output (Delivered Data)</h4>', unsafe_allow_html=True)
+            
+            # Show the actual transformation in a large, readable code block
+            st.markdown(f"""
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:15px; margin-bottom:15px">
+               <p style="font-size:12px; color:#64748b; margin-bottom:8px"><b>Response Body — {action.replace("_", " ").title()} Applied</b></p>
+            </div>""", unsafe_allow_html=True)
+            
+            st.code(data["processed_data"], language="json" if "{" in data["processed_data"] else "text")
+            
+            # Add a download button for the secure file
+            st.download_button(
+                label=f"⬇️ Download Secure {selected_file}",
+                data=data["processed_data"],
+                file_name=f"secure_{selected_file}",
+                mime="text/plain",
+                use_container_width=True
+            )
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
             st.success(f"✅ Request ID: `{data['request_id']}` — {data['message']}")
 
         elif data:

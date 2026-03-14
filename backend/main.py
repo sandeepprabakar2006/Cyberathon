@@ -79,28 +79,37 @@ def get_risk_band(score: int) -> str:
     if score <= RISK_MEDIUM_MAX: return "MEDIUM"
     return "HIGH"
 
-
 def compute_risk_score(nlp_score: int, raw_ip_score: int, user_role: str,
                        network: NetworkType) -> tuple[int, int, int]:
-    """
-    Returns (nlp_score, adjusted_ip_score, total).
+    is_trusted  = user_role in ["admin", "finance-manager"]
+    is_internal = (network == NetworkType.INTERNAL)
 
-    Internal VPC  : ip_score = 0 always (VPC boundary = trust boundary).
-    External      : ip_score = 20 base, reduced slightly for trusted roles.
-    """
-    _ROLE_IP_REDUCTION = {
-        "admin":           5,    # trusted but outside  → 20-5=15
-        "finance-manager": 5,    # trusted but outside  → 20-5=15
-        "data-analyst":    0,    # external role, no reduction
-        "external-auditor":0,    # expected external, no reduction
-        "guest":          -10,   # hostile → 20+10=30
-    }
-    if network == NetworkType.INTERNAL:
-        return nlp_score, 0, nlp_score
+    # ────────────────────────────────────────────────────────
+    # NetDictator Context Matrix (Environmental Override)
+    # ────────────────────────────────────────────────────────
+    # Role     | Network  | Risk Level
+    # ─────────|──────────|───────────
+    # Trusted  | Internal | LOW (Nothing a big deal)
+    # Untrust  | Internal | MEDIUM
+    # Trusted  | External | MEDIUM
+    # Untrust  | External | HIGH
+    # ────────────────────────────────────────────────────────
 
-    reduction    = _ROLE_IP_REDUCTION.get(user_role, 0)
-    adjusted_ip  = max(0, min(30, raw_ip_score - reduction))
-    return nlp_score, adjusted_ip, nlp_score + adjusted_ip
+    env_score = 0
+    if is_internal and is_trusted:
+        env_score = 0      # Baseline low
+        # Even IMPORTANT files (60) should land in LOW (<=24) for internal admins
+        final_score = max(0, nlp_score - 40) 
+    elif is_internal or is_trusted:
+        env_score = 30     # Force into MEDIUM (25-55)
+        # Shift NLP score to land in 30-55 range
+        final_score = 30 + (nlp_score // 3) 
+    else:
+        env_score = 60     # Force into HIGH (>55)
+        # Shift NLP score to land in 60-100 range
+        final_score = 60 + (nlp_score // 2)
+
+    return nlp_score, env_score, int(final_score)
 
 
 
@@ -188,33 +197,27 @@ def decide_action(
     #   (internal users: ip=0, so payroll=52 stays MEDIUM → masking)
     # ──────────────────────────────────────────────────
 
-    if network == NetworkType.INTERNAL:
-        # VPC trusted — apply light masking for IMPORTANT files, nil for rest
-        if sensitivity == SensitivityLevel.IMPORTANT:
-            return (
-                SecurityAction.MASKING,
-                "PII fields masked (salary/email/SSN) — internal user, sensitive file"
-            )
-        return (SecurityAction.NONE, "nil — internal VPC trusted user, non-sensitive file")
-
-    # EXTERNAL — risk band drives action
+    # Step 1: Decision Matrix based on the new Context Logic
     if risk_band == "HIGH":
         return (
             SecurityAction.ENCRYPT_AND_MASK,
-            "Step 1: PII masked (salary/email/SSN/cards) → Step 2: AES-256-CBC + RSA-2048-OAEP encryption"
+            "ENFORCE: HIGH RISK (External Untrusted) — dual-layer encryption + masking applied."
         )
-
+    
     if risk_band == "MEDIUM":
-        return (
-            SecurityAction.TOKENIZATION,
-            "sensitive values (SSN, emails, card numbers) replaced with secure SHA-256 tokens"
-        )
+        if network == NetworkType.EXTERNAL:
+            return (
+                SecurityAction.TOKENIZATION,
+                "ENFORCE: MEDIUM RISK (External Trusted) — sensitive values tokenized for transit."
+            )
+        else:
+            return (
+                SecurityAction.MASKING,
+                "ENFORCE: MEDIUM RISK (Internal Untrusted) — PII masked for controlled internal access."
+            )
 
-    # LOW risk external
-    return (
-        SecurityAction.PLAIN_ACCESS,
-        "plain access — low-sensitivity file, external risk minimal"
-    )
+    # LOW RISK
+    return (SecurityAction.NONE, "nil — TRUSTED (Internal Admin) — zero data transformation required.")
 
 
 # ─── Main Endpoint ──────────────────────────────────────────────────────────────

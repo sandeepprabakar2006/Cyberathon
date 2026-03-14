@@ -1,24 +1,18 @@
 """
-nlp_classifier.py
-─────────────────
-NLP-based file sensitivity classifier for the Adaptive Data Protection Engine.
-
+nlp_classifier.py — NetDictator Dynamic Inference Engine
+────────────────────────────────────────────────────────
 Approach:
-  - Uses a keyword/phrase scoring heuristic (deployable without GPU/model weights)
-  - Optionally upgrades to a transformers-based BERT classifier when available
-  - Returns one of three sensitivity levels: IMPORTANT | MEDIUM | NORMAL
-
-Sensitivity Rules:
-  IMPORTANT  → Contains PII, financial, credentials, medical, or legal data
-  MEDIUM     → Contains operational, business, or customer data
-  NORMAL     → General purpose documents with no sensitive indicators
+  - Phase 1: Dynamic Semantic Scoring (Contextual Proximity + Entity Density)
+  - Phase 2: Entropy Analysis (Dynamically guessing secrets/keys without keywords)
+  - Phase 3: Zero-Shot Classification (Transformers-ready)
 """
 
+import math
 import re
 import logging
 from enum import Enum
 
-logger = logging.getLogger("ADPE.NLPClassifier")
+logger = logging.getLogger("NetDictator.NLPClassifier")
 
 
 # ─── Sensitivity Levels ─────────────────────────────────────────────────────────
@@ -74,17 +68,54 @@ _PII_PATTERNS: list[re.Pattern] = [
 ]
 
 
+def _calculate_entropy(text: str) -> float:
+    """Dynamically guess if a string is a secret/key by calculating Shannon entropy."""
+    if not text: return 0
+    prob = [float(text.count(c)) / len(text) for c in dict.fromkeys(list(text))]
+    entropy = - sum([p * math.log(p) / math.log(2.0) for p in prob])
+    return entropy
+
+def _find_contextual_secrets(text: str) -> int:
+    """
+    Dynamically guess secrets by looking for 'Labels' near 'High-Entropy Strings'.
+    Example: 'api_key: xK92jLpQ...' -> Likely a real secret.
+    """
+    bonus = 0
+    # Search for labels followed by potential secrets (non-whitespace strings of 10+ chars)
+    patterns = [r"(?:key|secret|password|token|auth|pwd)\s*[:=]\s*(\S{10,})"]
+    for p in patterns:
+        matches = re.findall(p, text, re.IGNORECASE)
+        for m in matches:
+            # If entropy is high (>3.5), it's likely a real dynamic secret
+            if _calculate_entropy(m) > 3.5:
+                bonus += 5
+    return bonus
+
 def _score_content(text: str) -> tuple[int, int]:
     """
-    Score the text against IMPORTANT and MEDIUM keyword lists.
-    Returns (important_score, medium_score).
+    Hybrid Scoring Engine:
+    1. Keywords (Baseline)
+    2. Regex PII (Specifics)
+    3. Entropy & Context (Dynamic Guessing)
     """
     lowered = text.lower()
+    
+    # Baseline
     imp_score = sum(lowered.count(kw) for kw in _IMPORTANT_KEYWORDS)
     med_score = sum(lowered.count(kw) for kw in _MEDIUM_KEYWORDS)
-    # Bonus points for regex PII matches (weighted higher)
+    
+    # Specific Regex PII
     for pattern in _PII_PATTERNS:
-        imp_score += len(pattern.findall(text)) * 3
+        imp_score += len(pattern.findall(text)) * 4
+        
+    # Dynamic Guessing: Contextual Secrets
+    secret_bonus = _find_contextual_secrets(text)
+    imp_score += secret_bonus
+    
+    # Proximity Bonus: If multiple sensitive things are in the same snippet
+    if imp_score > 5 and med_score > 5:
+        imp_score += 10 # Contextual cluster detected
+        
     return imp_score, med_score
 
 
@@ -139,41 +170,26 @@ def get_nlp_risk_score(content: str) -> tuple[SensitivityLevel, int]:
     return SensitivityLevel.NORMAL, 0
 
 
-# ─── Optional: BERT-based upgrade ───────────────────────────────────────────────
-def classify_with_bert(content: str) -> SensitivityLevel:
+# ─── New: Zero-Shot Dynamic Policy Engine ────────────────────────────────────────
+def classify_zero_shot(content: str, candidate_labels: list[str] = None) -> str:
     """
-    Advanced classifier using a fine-tuned BERT model (requires transformers).
-    Falls back to keyword-based classification if model is unavailable.
-
-    Install: pip install transformers torch
-    Fine-tune a BERT model on sensitivity labelled data and point MODEL_PATH
-    to its directory.
-
-    Args:
-        content: Raw text content.
-
-    Returns:
-        SensitivityLevel enum value.
+    The ultimate dynamic model: Uses Zero-Shot classification to guess categories 
+    without ANY pre-defined keywords.
     """
+    if candidate_labels is None:
+        candidate_labels = ["confidential", "financial", "operational", "public"]
+        
     try:
-        from transformers import pipeline  # type: ignore
-        import os
-
-        model_path = os.environ.get("BERT_MODEL_PATH", "./sensitivity_model")
-        classifier = pipeline("text-classification", model=model_path)
-
-        # Truncate to 512 tokens (BERT limit)
-        snippet = content[:2000]
-        result = classifier(snippet)[0]
-        label: str = result["label"].lower()
-
-        mapping = {"important": SensitivityLevel.IMPORTANT,
-                   "medium":    SensitivityLevel.MEDIUM,
-                   "normal":    SensitivityLevel.NORMAL}
-        level = mapping.get(label, SensitivityLevel.NORMAL)
-        logger.info("BERT classifier result: %s (confidence=%.2f)", label, result["score"])
-        return level
-
-    except Exception as exc:
-        logger.warning("BERT classifier unavailable (%s). Falling back to keyword heuristic.", exc)
-        return classify_sensitivity(content)
+        from transformers import pipeline
+        # Using a very small, fast distilled model for demo
+        classifier = pipeline("zero-shot-classification", model="typeform/distilbert-base-uncased-mnli")
+        
+        snippet = content[:1000]
+        res = classifier(snippet, candidate_labels=candidate_labels)
+        top_label = res['labels'][0]
+        
+        logger.info("Zero-Shot Dynamic Guess: %s (confidence: %.2f)", top_label, res['scores'][0])
+        return top_label
+    except Exception as e:
+        logger.warning("Zero-Shot Model not loaded. Using Dynamic Heuristic instead.")
+        return "heuristic"
